@@ -1,34 +1,50 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CourseManagement {
-  private static ArrayList<Course> courses;
-  private static ArrayList<Double> grades;
+  private static List<Course> courses = new ArrayList<>();
+  private static Map<Student, Map<Course, Double>> studentGrades = new HashMap<>();
 
-  public static void addCourse(String courseCode, String name, int maxCapacity) {
-    Course course = new Course(courseCode, name, maxCapacity);
-    courses.add(course);
+  public static List<Course> getCourses() {
+    return courses;
+  }
+
+  public static Map<Student, Map<Course, Double>> getStudentGrades() {
+    return studentGrades;
+  }
+
+  public static void addCourse(String courseCode, String courseName, int maxCapacity) {
+    courses.add(new Course(courseCode, courseName, maxCapacity));
   }
 
   public static void enrollStudent(Student student, Course course) {
-    // Check if course has reached max capacity
-    if (course.getMaxCapacity() > Course.numberOfEnrolledStudents()) {
-      student.enrollCourse(course.getCourseCode(), courses);
-      Course.setNumberOfEnrolledStudents();
-    } else {
-      System.out.println("Course has reached maximum capacity.");
+    student.enrollCourse(course);
+    if (!studentGrades.containsKey(student)) {
+      studentGrades.put(student, new HashMap<>());
     }
+    studentGrades.get(student).put(course, null);
   }
 
-  public static void assignGrade(Student student, Course course, int grade) {
-    student.assignGrade(course.getCourseCode(), grade);
+  public static void assignGrade(Student student, Course course, double grade) {
+    student.assignGrade(course, grade);
+    studentGrades.get(student).put(course, grade);
   }
 
   public static double calculateOverallGrade(Student student) {
-    double sum = 0;
-    for (double grade : student.getGrades()) {
-      sum += grade;
+    Map<Course, Double> grades = studentGrades.get(student);
+    if (grades == null || grades.isEmpty()) {
+      return 0;
     }
-    grades.add(sum);
-    return sum;
+    double total = 0;
+    int count = 0;
+    for (Double grade : grades.values()) {
+      if (grade != null) {
+        total += grade;
+        count++;
+      }
+    }
+    return count == 0 ? 0 : total / count;
   }
 }
